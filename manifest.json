@@ -1,6 +1,6 @@
 {
     "name": "front_pwa",
-    "short_name": "frtpw",
+    "short_name": "firePWA",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
