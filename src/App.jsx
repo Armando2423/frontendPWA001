@@ -1,35 +1,68 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./components/login/Login";
+import SignUp from "./components/signup/Signup";
+import SplashScreen from "./components/splashScreen/SplashScreen";
+import Main from "./components/main/Main";
+import Users from "./components/users/Users";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const [showSplash, setShowSplash] = useState(true);
+ 
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    localStorage.getItem("isAuthenticated") === "true"
+  );
+  
+  // Función para manejar la autenticación
+  const handleLoginSuccess = () => {
+    localStorage.setItem("isAuthenticated", "true");
+    setIsAuthenticated(true);
+  };
+  
+  const PrivateRoute = ({ element }) => {
+    return isAuthenticated ? element : <Navigate to="/" replace />;
+  };
+  
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <BrowserRouter>
+      {showSplash ? (
+        <SplashScreen />
+      ) : (
+        <Routes>
+          <Route path="/" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+          <Route path="/signup" element={<SignUp />} />
+         {/*  <Route path="/users" element={<Users />} />
+          <Route path="/main" element={<Main />} /> */}
+        <Route path="/users" element={<PrivateRoute element={<Users />} />} />
+          <Route path="/main" element={<PrivateRoute element={<Main />} />} /> 
+        </Routes>
+      )}
+    </BrowserRouter>
+  );
 
-export default App
+  /* return(
+    <BrowserRouter>
+     <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/splash" element={<SplashScreen/>} />
+          <Route path="/users" element={<Users/>} />
+        </Routes>
+    </BrowserRouter>
+  );
+ */
+
+};
+
+export default App;
