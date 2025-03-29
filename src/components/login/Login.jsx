@@ -15,7 +15,7 @@ const Login = ({ onLoginSuccess }) => {
         setError('');
 
         try {
-            const response = await axios.post('https://backendpwa001-2.onrender.com/login', { email, password });
+            const response = await axios.post('https://backendpwa-6xks.onrender.com/login', { email, password });
 
             if (response.data.rol) {
                 alert('Haz iniciado sesión, exitosamente',);

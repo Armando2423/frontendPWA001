@@ -23,7 +23,7 @@ const Users = () => {
                     .then(subscription => {
                         console.log(subscription);
                         // Guardar la suscripción en el servidor
-                        return fetch('http://localhost:3000/save-subscription', {
+                        return fetch('https://backendpwa-6xks.onrender.com/save-subscription', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(subscription)
@@ -44,7 +44,7 @@ const Users = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await fetch("http://localhost:3008/users");
+                const response = await fetch("https://backendpwa-6xks.onrender.com/users");
                 const data = await response.json();
                 setUsers(data);
             } catch (error) {

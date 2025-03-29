@@ -88,7 +88,7 @@ const SignUp = () => {
 
         if (navigator.onLine) {
             try {
-                const response = await axios.post('https://backendpwa001-2.onrender.com/register', {
+                const response = await axios.post('https://backendpwa-6xks.onrender.com/register', {
                     name: formData.name,
                     app: formData.app,
                     apm: formData.apm,
