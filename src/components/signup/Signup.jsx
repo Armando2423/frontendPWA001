@@ -48,26 +48,40 @@ const SignUp = () => {
     // Enviar datos guardados en IndexedDB cuando haya conexión
     const sendOfflineData = async () => {
         const request = indexedDB.open("database", 2);
-
+    
         request.onsuccess = async (event) => {
             const db = event.target.result;
             const transaction = db.transaction("offlineDB", "readonly");
             const store = transaction.objectStore("offlineDB");
             const getAllRequest = store.getAll();
-
+    
             getAllRequest.onsuccess = async () => {
                 const offlineData = getAllRequest.result;
-
+    
+                if (offlineData.length === 0) return;
+    
                 for (const data of offlineData) {
                     try {
                         const response = await axios.post('https://backendpwa001.onrender.com/register', data);
                         console.log("Datos sincronizados:", response.data);
-
-                        // Eliminar todos los registros después de sincronizar
+    
+                        // Limpiar IndexedDB después de sincronizar
                         const deleteTransaction = db.transaction("offlineDB", "readwrite");
                         const deleteStore = deleteTransaction.objectStore("offlineDB");
                         deleteStore.clear();
                         console.log("Datos eliminados de IndexedDB después de sincronizar.");
+    
+                        // **Muestra una alerta**
+                        alert("Los datos guardados sin conexión se han sincronizado exitosamente.");
+    
+                        // **Limpia el formulario**
+                        setFormData({
+                            name: '',
+                            app: '',
+                            apm: '',
+                            email: '',
+                            password: ''
+                        });
                     } catch (error) {
                         console.error("Error al sincronizar:", error);
                     }
@@ -75,6 +89,7 @@ const SignUp = () => {
             };
         };
     };
+    
 
     // Manejar envío del formulario
     const handleSubmit = async (e) => {
