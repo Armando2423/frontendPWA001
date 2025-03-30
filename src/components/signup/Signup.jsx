@@ -60,7 +60,7 @@ const SignUp = () => {
 
                 for (const data of offlineData) {
                     try {
-                        const response = await axios.post('https://backendpwa001-2.onrender.com/register', data);
+                        const response = await axios.post('https://backendpwa001.onrender.com/register', data);
                         console.log("Datos sincronizados:", response.data);
 
                         // Eliminar todos los registros después de sincronizar
@@ -88,7 +88,7 @@ const SignUp = () => {
 
         if (navigator.onLine) {
             try {
-                const response = await axios.post('https://backendpwa-6xks.onrender.com/register', {
+                const response = await axios.post('https://backendpwa001.onrender.com/register', {
                     name: formData.name,
                     app: formData.app,
                     apm: formData.apm,

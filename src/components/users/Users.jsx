@@ -23,7 +23,7 @@ const Users = () => {
                     .then(subscription => {
                         console.log(subscription);
                         // Guardar la suscripción en el servidor
-                        return fetch('https://backendpwa-6xks.onrender.com/save-subscription', {
+                        return fetch('https://backendpwa001.onrender.com/save-subscription', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(subscription)
@@ -44,7 +44,7 @@ const Users = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await fetch("https://backendpwa-6xks.onrender.com/users");
+                const response = await fetch("https://backendpwa001.onrender.com/users");
                 const data = await response.json();
                 setUsers(data);
             } catch (error) {
@@ -60,16 +60,26 @@ const Users = () => {
         setModalOpen(true);
     };
 
-    const handleSendNotification = () => {
-        if (navigator.serviceWorker.controller) {
-            navigator.serviceWorker.controller.postMessage({
-                action: 'sendNotification',
-                title: 'Notificación para ' + selectedUser.name,
-                body: `Gracias ${selectedUser.name} por usar mi PWA`,
+    const handleSendNotification = async () => {
+        try {
+            const response = await fetch('https://backendpwa001.onrender.com/send-notification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: `Notificación para ${selectedUser.name}`,
+                    body: `Gracias ${selectedUser.name} por usar mi PWA`
+                })
             });
+    
+            const data = await response.json();
+            console.log(data.message);
+        } catch (error) {
+            console.error("❌ Error al enviar notificación:", error);
         }
+    
         setModalOpen(false);
     };
+    
 
     return (
         <div className="container">
