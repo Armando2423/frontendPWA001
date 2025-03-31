@@ -54,31 +54,17 @@ self.addEventListener("fetch", (event) => {
 
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) {
-                console.log("Sirviendo desde caché:", event.request.url);
-                return cachedResponse;
-            }
-
-            return fetch(event.request)
-                .then((response) => {
-                    if (!response || response.status !== 200 || response.type !== "basic") {
-                        return response;
-                    }
-
-                    let responseClone = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, responseClone);
-                    });
-
-                    return response;
-                })
-                .catch(() => {
-                    console.warn("No hay conexión, sirviendo página offline.");
-                    return caches.match(OFFLINE_URL);
+            return cachedResponse || fetch(event.request).then((response) => {
+                let responseClone = response.clone();
+                caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(event.request, responseClone);
                 });
+                return response;
+            }).catch(() => caches.match(OFFLINE_URL));
         })
     );
 });
+
 
 // Sincronización con IndexedDB
 function insertIndexedDB(data) {
