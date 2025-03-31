@@ -48,34 +48,42 @@ const SignUp = () => {
 
     // Enviar datos guardados en IndexedDB cuando haya conexión
     const sendOfflineData = async () => {
-    const request = indexedDB.open("database", 2);
-
-    request.onsuccess = async (event) => {
-        const db = event.target.result;
-        const transaction = db.transaction("offlineDB", "readonly");
-        const store = transaction.objectStore("offlineDB");
-        const getAllRequest = store.getAll();
-
-        getAllRequest.onsuccess = async () => {
-            const offlineData = getAllRequest.result;
-
-            if (offlineData.length === 0) return;
-
-            for (const data of offlineData) {
-                try {
-                    const response = await axios.post('https://backendpwa001.onrender.com/register', data);
-                    console.log("Datos sincronizados:", response.data);
-
-                    // Limpiar IndexedDB después de sincronizar
+        const request = indexedDB.open("database", 2);
+    
+        request.onsuccess = async (event) => {
+            const db = event.target.result;
+            const transaction = db.transaction("offlineDB", "readonly");
+            const store = transaction.objectStore("offlineDB");
+            const getAllRequest = store.getAll();
+    
+            getAllRequest.onsuccess = async () => {
+                const offlineData = getAllRequest.result;
+    
+                if (offlineData.length === 0) return;
+    
+                let allSynced = true; // Variable para verificar si todos los datos se enviaron correctamente
+    
+                for (const data of offlineData) {
+                    try {
+                        const response = await axios.post('https://backendpwa001.onrender.com/register', data);
+                        console.log("Datos sincronizados:", response.data);
+                    } catch (error) {
+                        console.error("Error al sincronizar:", error);
+                        allSynced = false; // Si hay un error, no eliminamos los datos ni mostramos la alerta
+                    }
+                }
+    
+                if (allSynced) {
+                    // Eliminar datos solo si todos fueron enviados correctamente
                     const deleteTransaction = db.transaction("offlineDB", "readwrite");
                     const deleteStore = deleteTransaction.objectStore("offlineDB");
                     deleteStore.clear();
                     console.log("Datos eliminados de IndexedDB después de sincronizar.");
-
-                    // **Muestra una alerta**
+    
+                    // **Muestra una alerta solo cuando todo se sincroniza bien**
                     alert("Los datos guardados sin conexión se han sincronizado exitosamente.");
-
-                    // **Limpia el formulario**
+    
+                    // **Limpia el formulario solo después de sincronizar**
                     setFormData({
                         name: '',
                         app: '',
@@ -83,13 +91,11 @@ const SignUp = () => {
                         email: '',
                         password: ''
                     });
-                } catch (error) {
-                    console.error("Error al sincronizar:", error);
                 }
-            }
+            };
         };
     };
-};
+    
 
 
     // Manejar envío del formulario
