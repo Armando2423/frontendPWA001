@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import './Main.css';
+import keys from "../../../keys.json";
 // images 
 import Snake4 from "../../imgs/snake4.jpg";
 import Snake2 from "../../imgs/snake2.jpg";

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Users.css";
-/* import sw from "../../../sw";
- */
+/* import sw from "../../../sw"; */
+
 const Users = () => {
     const [users, setUsers] = useState([]);
     const [modalOpen, setModalOpen] = useState(false);
