@@ -9,7 +9,7 @@ import App from './App.jsx';
         .catch(err => console.error("Error al registrar el Service Worker:", err));
 } else {
     console.warn("Service Worker no es compatible con este navegador.");
-} */
+} */    
 
 navigator.serviceWorker.register('./sw.js', {type: 'module'})
 .then((registro) => {

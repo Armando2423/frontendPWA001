@@ -110,7 +110,7 @@ function insertIndexedDB(data) {
 }
 
 self.addEventListener("fetch", (event) => {
-    if (event.request.method === "POST" && event.request.url.includes("/register")) {
+    if (event.request.method === "POST" && event.request.url.includes("https://backendpwa001.onrender.com/register")) {
         event.respondWith(
             event.request.clone().text().then((body) => {
                 try {

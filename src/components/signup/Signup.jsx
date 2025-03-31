@@ -6,6 +6,7 @@ import './Signup.css';
 
 const SignUp = () => {
     const navigate = useNavigate();
+    const [offline, setOffline] = useState(navigator.onLine);
     const [formData, setFormData] = useState({
         name: '',
         app: '',
