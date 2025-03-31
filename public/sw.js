@@ -1,6 +1,8 @@
 const CACHE_NAME = "appShell-v5";
 const OFFLINE_URL = "/index.html";
 
+
+
 self.addEventListener("install", (event) => {
     console.log("Service Worker instalando...");
     event.waitUntil(
