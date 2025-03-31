@@ -24,7 +24,7 @@ const SignUp = () => {
 
     const openDatabase = () => {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open("database", 3);
+            const request = indexedDB.open("database", 2);
 
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
@@ -43,47 +43,55 @@ const SignUp = () => {
             const db = await openDatabase();
             const transaction = db.transaction("offlineDB", "readwrite");
             const store = transaction.objectStore("offlineDB");
-            const request = store.add(data);
+            store.add(data);
 
-            request.onsuccess = () => console.log("Datos guardados en IndexedDB:", data);
-            request.onerror = (event) => console.error("Error al guardar en IndexedDB:", event.target.error);
-
+            console.log("Datos guardados en IndexedDB:", data);
             setError("No hay conexión. Datos guardados y serán enviados cuando haya internet.");
+            setFormData({ name: '', app: '', apm: '', email: '', password: '' }); // Limpiar formulario
         } catch (error) {
             console.error("Error al guardar en IndexedDB:", error);
         }
     };
 
     const sendOfflineData = async () => {
-        const db = await openDatabase();
-        if (!db.objectStoreNames.contains("offlineDB")) return;
+        const request = indexedDB.open("database", 2);
 
-        const transaction = db.transaction("offlineDB", "readonly");
-        const store = transaction.objectStore("offlineDB");
-        const getAllRequest = store.getAll();
+        request.onsuccess = async (event) => {
+            const db = event.target.result;
 
-        getAllRequest.onsuccess = async () => {
-            const offlineData = getAllRequest.result;
-            if (offlineData.length === 0) return;
+            if (!db.objectStoreNames.contains("offlineDB")) {
+                console.error("Error: No existe el objectStore offlineDB");
+                return;
+            }
 
-            let allSynced = true;
-            for (const data of offlineData) {
-                try {
-                    await axios.post('https://backendpwa001.onrender.com/register', data);
-                    console.log("Datos sincronizados:", data);
-                } catch (error) {
-                    console.error("Error al sincronizar:", error);
-                    allSynced = false;
+            const transaction = db.transaction("offlineDB", "readonly");
+            const store = transaction.objectStore("offlineDB");
+            const getAllRequest = store.getAll();
+
+            getAllRequest.onsuccess = async () => {
+                const offlineData = getAllRequest.result;
+                if (offlineData.length === 0) return;
+
+                let allSynced = true;
+                for (const data of offlineData) {
+                    try {
+                        const response = await axios.post('https://backendpwa001.onrender.com/register', data);
+                        console.log("Datos sincronizados:", response.data);
+                    } catch (error) {
+                        console.error("Error al sincronizar:", error);
+                        allSynced = false;
+                    }
                 }
-            }
 
-            if (allSynced) {
-                const deleteTransaction = db.transaction("offlineDB", "readwrite");
-                const deleteStore = deleteTransaction.objectStore("offlineDB");
-                deleteStore.clear();
-                console.log("Datos eliminados de IndexedDB después de sincronizar.");
-                alert("Los datos guardados sin conexión se han sincronizado exitosamente.");
-            }
+                if (allSynced) {
+                    const deleteTransaction = db.transaction("offlineDB", "readwrite");
+                    const deleteStore = deleteTransaction.objectStore("offlineDB");
+                    deleteStore.clear();
+
+                    console.log("Datos eliminados de IndexedDB después de sincronizar.");
+                    alert("Los datos guardados sin conexión se han sincronizado exitosamente.");
+                }
+            };
         };
     };
 
@@ -99,11 +107,14 @@ const SignUp = () => {
         if (navigator.onLine) {
             try {
                 const response = await axios.post('https://backendpwa001.onrender.com/register', formData);
+
                 console.log('Respuesta del servidor:', response.data);
                 alert('Registro exitoso');
+
+                setFormData({ name: '', app: '', apm: '', email: '', password: '' }); // Limpiar formulario
                 navigate('/');
             } catch (error) {
-                console.error('Error en el registro:', error.response?.data || error);
+                console.log('Error en el registro:', error.response ? error.response.data : error);
                 setError(error.response?.data?.message || 'Error en el registro. Intenta nuevamente.');
             }
         } else {
@@ -126,25 +137,30 @@ const SignUp = () => {
 
             <form onSubmit={handleSubmit}>
                 <div className="input-box">
-                    <input type="text" placeholder="Nombre" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+                    <input type="text" name="name" placeholder="Nombre" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
                     <FaUser className="icon" />
                 </div>
+
                 <div className="input-box">
-                    <input type="text" placeholder="Apellido Paterno" value={formData.app} onChange={(e) => setFormData({ ...formData, app: e.target.value })} required />
+                    <input type="text" name="app" placeholder="Apellido Paterno" value={formData.app} onChange={(e) => setFormData({ ...formData, app: e.target.value })} required />
                     <FaUser className="icon" />
                 </div>
+
                 <div className="input-box">
-                    <input type="text" placeholder="Apellido Materno" value={formData.apm} onChange={(e) => setFormData({ ...formData, apm: e.target.value })} required />
+                    <input type="text" name="apm" placeholder="Apellido Materno" value={formData.apm} onChange={(e) => setFormData({ ...formData, apm: e.target.value })} required />
                     <FaUser className="icon" />
                 </div>
+
                 <div className="input-box">
-                    <input type="email" placeholder="Correo" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+                    <input type="email" name="email" placeholder="Correo" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
                     <FaEnvelope className="icon" />
                 </div>
+
                 <div className="input-box">
-                    <input type="password" placeholder="Contraseña" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
+                    <input type="password" name="password" placeholder="Contraseña" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
                     <FaLock className="icon" />
                 </div>
+
                 <button type="submit">Registrarse</button>
             </form>
         </div>
