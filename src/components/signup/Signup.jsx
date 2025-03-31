@@ -62,18 +62,26 @@ const SignUp = () => {
 
     // 🔹 Enviar datos guardados en IndexedDB cuando vuelva la conexión
     const sendOfflineData = async () => {
-        try {
-            const db = await openDatabase();
+        const request = indexedDB.open("database", 2);
+    
+        request.onsuccess = async (event) => {
+            const db = event.target.result;
+    
+            // Validar existencia de objectStore antes de acceder
+            if (!db.objectStoreNames.contains("offlineDB")) {
+                console.error("Error: No existe el objectStore offlineDB");
+                return;
+            }
+    
             const transaction = db.transaction("offlineDB", "readonly");
             const store = transaction.objectStore("offlineDB");
             const getAllRequest = store.getAll();
-
+    
             getAllRequest.onsuccess = async () => {
                 const offlineData = getAllRequest.result;
                 if (offlineData.length === 0) return;
-
+    
                 let allSynced = true;
-
                 for (const data of offlineData) {
                     try {
                         const response = await axios.post('https://backendpwa001.onrender.com/register', data);
@@ -83,7 +91,7 @@ const SignUp = () => {
                         allSynced = false;
                     }
                 }
-
+    
                 if (allSynced) {
                     const deleteTransaction = db.transaction("offlineDB", "readwrite");
                     const deleteStore = deleteTransaction.objectStore("offlineDB");
@@ -92,10 +100,9 @@ const SignUp = () => {
                     alert("Los datos guardados sin conexión se han sincronizado exitosamente.");
                 }
             };
-        } catch (error) {
-            console.error("Error al enviar datos de IndexedDB:", error);
-        }
+        };
     };
+    
 
     // 🔹 Manejo del envío del formulario
     const handleSubmit = async (e) => {
