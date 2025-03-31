@@ -12,7 +12,7 @@ const SignUp = () => {
         app: '',
         apm: '',
         email: '',
-        password: ''
+        pwd: ''
     });
 
     useEffect(() => {
@@ -47,7 +47,7 @@ const SignUp = () => {
 
             console.log("Datos guardados en IndexedDB:", data);
             setError("No hay conexión. Datos guardados y serán enviados cuando haya internet.");
-            setFormData({ name: '', app: '', apm: '', email: '', password: '' }); // Limpiar formulario
+            setFormData({ name: '', app: '', apm: '', email: '', pwd: '' }); // Limpiar formulario
         } catch (error) {
             console.error("Error al guardar en IndexedDB:", error);
         }
@@ -99,7 +99,7 @@ const SignUp = () => {
         e.preventDefault();
         setError('');
 
-        if (!formData.name || !formData.app || !formData.apm || !formData.email || !formData.password) {
+        if (!formData.name || !formData.app || !formData.apm || !formData.email || !formData.pwd) {
             setError('Todos los campos son obligatorios');
             return;
         }
@@ -111,7 +111,7 @@ const SignUp = () => {
                 console.log('Respuesta del servidor:', response.data);
                 alert('Registro exitoso');
 
-                setFormData({ name: '', app: '', apm: '', email: '', password: '' }); // Limpiar formulario
+                setFormData({ name: '', app: '', apm: '', email: '', pwd: '' }); // Limpiar formulario
                 navigate('/');
             } catch (error) {
                 console.log('Error en el registro:', error.response ? error.response.data : error);
@@ -157,7 +157,7 @@ const SignUp = () => {
                 </div>
 
                 <div className="input-box">
-                    <input type="password" name="password" placeholder="Contraseña" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} required />
+                    <input type="password" name="pwd" placeholder="Contraseña" value={formData.pwd} onChange={(e) => setFormData({ ...formData, pwd: e.target.value })} required />
                     <FaLock className="icon" />
                 </div>
 
