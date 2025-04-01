@@ -68,8 +68,8 @@ const Users = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: selectedUser.email, // Enviar email en la solicitud
-                    title: `Hola, ${selectedUser.name}!`,
-                    body: `Gracias por usar nuestra aplicación!`
+                    title: `BIENVENIDO, ${selectedUser.name}!`,
+                    body: `Gracias por usar mi PWA!`
                 })
             });
     

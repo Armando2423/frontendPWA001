@@ -191,25 +191,32 @@ self.addEventListener("sync", (event) => {
     }
 });
  */
-
 self.addEventListener("push", (event) => {
-    console.log("🔔 Notificación push recibida:", event.data ? event.data.text() : "Sin datos");
-
     if (event.data) {
         try {
-            const { title, body } = event.data.json();
-            console.log("📢 Mostrando notificación:", title, body);
+            const data = event.data.text(); // Intenta leer el mensaje como texto
+            let parsedData;
+
+            try {
+                parsedData = JSON.parse(data); // Intenta convertirlo a JSON
+            } catch {
+                parsedData = { title: "Notificación", body: data }; // Si falla, usa un mensaje genérico
+            }
+
             const options = {
-                body,
-                icon: "/fire.png",
+                body: parsedData.body,
+                icon: "/src/imgs/fire.png",
+                image: '/src/imgs/fire.png',
                 vibrate: [200, 100, 200],
             };
-            self.registration.showNotification(title, options);
-        } catch (error) {
-            console.error("❌ Error al procesar la notificación:", error);
+
+            self.registration.showNotification(parsedData.title, options);
+        } catch (e) {
+            console.error("❌ Error procesando la notificación push:", e);
         }
     }
 });
+
 
 
 // Manejo de clic en notificaciones
