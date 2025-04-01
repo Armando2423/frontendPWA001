@@ -11,36 +11,31 @@ const Users = () => {
     useEffect(() => {
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js')
-            .then(registro => {
-                console.log("✅ Service Worker registrado");
+                .then(async registro => {
+                    console.log("✅ Service Worker registrado");
         
-                if (Notification.permission === 'default') {
-                    Notification.requestPermission().then(async permission => {
+                    if (Notification.permission === 'default') {
+                        const permission = await Notification.requestPermission();
                         if (permission === 'granted') {
                             const subscription = await registro.pushManager.subscribe({
                                 userVisibleOnly: true,
                                 applicationServerKey: keys.public_key
                             });
         
-                            // Obtener el correo del usuario desde el almacenamiento local
-                            const userEmail = localStorage.getItem('userEmail');
-        
+                            // Guardar la suscripción en el backend
+                            const userEmail = localStorage.getItem("userEmail"); // Asegúrate de guardar el email del usuario al iniciar sesión
                             if (userEmail) {
-                                // Guardar suscripción en el servidor
                                 await fetch('https://backendpwa001.onrender.com/save-subscription', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ email: userEmail, subscription })
                                 });
-        
-                                console.log('📩 Suscripción guardada con usuario:', userEmail);
                             }
                         }
-                    });
-                }
-            })
-            .catch(error => console.error("❌ Error al registrar el Service Worker:", error));
-        }
+                    }
+                })
+                .catch(error => console.error("❌ Error al registrar el Service Worker:", error));
+        }        
         
     }, []);
     
