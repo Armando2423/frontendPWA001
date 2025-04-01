@@ -177,7 +177,7 @@ self.addEventListener("sync", (event) => {
 });
 
 // Notificaciones push
-self.addEventListener("push", (event) => {
+/* self.addEventListener("push", (event) => {
     if (event.data) {
         const { title, body } = event.data.json();
         const options = {
@@ -188,6 +188,23 @@ self.addEventListener("push", (event) => {
         };
 
         self.registration.showNotification(title, options);
+    }
+});
+ */
+
+self.addEventListener("push", (event) => {
+    if (event.data) {
+        try {
+            const { title, body } = event.data.json();
+            const options = {
+                body,
+                icon: "/fire.png",
+                vibrate: [200, 100, 200],
+            };
+            self.registration.showNotification(title, options);
+        } catch (e) {
+            console.error("❌ Error procesando la notificación push:", e);
+        }
     }
 });
 
