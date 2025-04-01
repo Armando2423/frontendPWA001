@@ -193,17 +193,20 @@ self.addEventListener("sync", (event) => {
  */
 
 self.addEventListener("push", (event) => {
+    console.log("🔔 Notificación push recibida:", event.data ? event.data.text() : "Sin datos");
+
     if (event.data) {
         try {
             const { title, body } = event.data.json();
+            console.log("📢 Mostrando notificación:", title, body);
             const options = {
                 body,
                 icon: "/fire.png",
                 vibrate: [200, 100, 200],
             };
             self.registration.showNotification(title, options);
-        } catch (e) {
-            console.error("❌ Error procesando la notificación push:", e);
+        } catch (error) {
+            console.error("❌ Error al procesar la notificación:", error);
         }
     }
 });
