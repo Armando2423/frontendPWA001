@@ -87,8 +87,12 @@ const SignUp = () => {
                 deleteStore.clear();
                 console.log("Datos eliminados de IndexedDB después de sincronizar.");
                 alert("La conexión ha vuelto. Los datos han sido registrados correctamente.");
+            } else {
+                alert("Algunos datos no pudieron sincronizarse. Se intentará nuevamente.");
+                setTimeout(sendOfflineData, 2000); // Reintentar después de 5s
             }
         };
+      
     };
 
     const handleSubmit = async (e) => {
