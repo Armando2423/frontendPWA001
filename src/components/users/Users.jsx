@@ -56,7 +56,7 @@ const Users = () => {
 
     const handleSendNotification = async () => {
         try {
-            const response = await fetch('https://backendpwa001.onrender.com/send-notification', {
+            const response = await fetch('https://backendpwa001.onrender.com/save_subscription', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
