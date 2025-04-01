@@ -39,7 +39,7 @@ const Main = () => {
         try {
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
-                applicationServerKey: keys.public_key
+                applicationServerKey: keys.publicKey
             });
 
             console.log("📩 Suscripción a notificaciones:", subscription);

@@ -20,7 +20,7 @@ const Users = () => {
                         if (permission === 'granted') {
                             const subscription = await registro.pushManager.subscribe({
                                 userVisibleOnly: true,
-                                applicationServerKey: keys.public_key
+                                applicationServerKey: keys.publicKey
                             });
         
                             // Guardar la suscripción en el backend
