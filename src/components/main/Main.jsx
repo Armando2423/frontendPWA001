@@ -12,54 +12,51 @@ const Main = () => {
     const images = [Snake4, Snake2, Snake1];
 
     useEffect(() => {
-        const askNotificationPermission = async () => {
-            if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-                console.log("❌ Notificaciones o Service Workers no soportados en este navegador");
-                return;
-            }
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log("✅ Service Worker registrado en Main");
 
-            if (Notification.permission === "default") {
-                const permission = await Notification.requestPermission();
-                if (permission === "granted") {
-                    subscribeToPushNotifications();
-                }
-            } else if (Notification.permission === "granted") {
-                subscribeToPushNotifications();
-            }
-        };
-
-        const subscribeToPushNotifications = async () => {
-            try {
-                const registration = await navigator.serviceWorker.register('/sw.js');
-                console.log("✅ Service Worker registrado en Main");
-
-                if (!('pushManager' in registration)) {
-                    console.error("❌ pushManager no soportado en este navegador");
-                    return;
-                }
-
-                const subscription = await registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: keys.public_key
-                });
-
-                console.log("📩 Suscripción a notificaciones:", subscription);
-
-                await fetch('https://backendpwa001.onrender.com/save-subscription', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(subscription)
-                });
-
-                console.log("📩 Suscripción enviada al backend");
-
-            } catch (error) {
-                console.error("❌ Error al suscribirse a notificaciones:", error);
-            }
-        };
-
-        askNotificationPermission();
+                    // Verificar permisos de notificación
+                    if (Notification.permission === 'default') {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === 'granted') {
+                                subscribeToPushNotifications(registration);
+                            } else {
+                                console.warn("🚫 Notificaciones denegadas por el usuario");
+                                alert("Has rechazado las notificaciones. Puedes activarlas desde la configuración del navegador.");
+                            }
+                        });
+                    } else if (Notification.permission === 'granted') {
+                        subscribeToPushNotifications(registration);
+                    }
+                })
+                .catch(error => console.error("❌ Error al registrar el Service Worker:", error));
+        }
     }, []);
+
+    const subscribeToPushNotifications = async (registration) => {
+        try {
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: keys.public_key
+            });
+
+            console.log("📩 Suscripción a notificaciones:", subscription);
+
+            // Guardar suscripción en el servidor
+            const response = await fetch('https://backendpwa001.onrender.com/save-subscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(subscription)
+            });
+
+            const data = await response.json();
+            console.log("📩 Suscripción guardada:", data);
+        } catch (error) {
+            console.error("❌ Error al suscribirse a notificaciones:", error);
+        }
+    };
 
     const nextImage = () => setCurrentImage((prev) => (prev + 1) % images.length);
     const prevImage = () => setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
