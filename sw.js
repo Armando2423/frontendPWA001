@@ -191,7 +191,7 @@ self.addEventListener("sync", (event) => {
     }
 });
  */
-self.addEventListener("push", (event) => {
+/* self.addEventListener("push", (event) => {
     if (event.data) {
         try {
             const data = event.data.text(); // Intenta leer el mensaje como texto
@@ -216,7 +216,7 @@ self.addEventListener("push", (event) => {
         }
     }
 });
-
+ */
 
 
 // Manejo de clic en notificaciones

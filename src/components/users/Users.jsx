@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Users.css";
 import keys from  "../../../keys.json";
-/* import sw from "../../../public/sw" */
-/* import sw from "../../../sw";
- */
+
 const Users = () => {
     const [users, setUsers] = useState([]);
     const [modalOpen, setModalOpen] = useState(false);
@@ -23,8 +21,7 @@ const Users = () => {
                                 applicationServerKey: keys.publicKey
                             });
         
-                            // Guardar la suscripción en el backend
-                            const userEmail = localStorage.getItem("userEmail"); // Asegúrate de guardar el email del usuario al iniciar sesión
+                            const userEmail = localStorage.getItem("userEmail"); 
                             if (userEmail) {
                                 await fetch('https://backendpwa001.onrender.com/save-subscription', {
                                     method: 'POST',
@@ -37,11 +34,8 @@ const Users = () => {
                 })
                 .catch(error => console.error("❌ Error al registrar el Service Worker:", error));
         }        
-        
     }, []);
     
-
-    // 🚀 Obtener usuarios desde la API
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -52,7 +46,6 @@ const Users = () => {
                 console.error("❌ Error al obtener usuarios:", error);
             }
         };
-
         fetchUsers();
     }, []);
 
@@ -67,7 +60,7 @@ const Users = () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    email: selectedUser.email, // Enviar email en la solicitud
+                    email: selectedUser.email,
                     title: `BIENVENIDO, ${selectedUser.name}!`,
                     body: `Gracias por usar mi PWA!`
                 })
@@ -81,9 +74,24 @@ const Users = () => {
     
         setModalOpen(false);
     };
-    
-    
 
+    useEffect(() => {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener("push", (event) => {
+                if (event.data) {
+                    const { title, body } = event.data.json();
+                    const options = {
+                        body,
+                        icon: "/src/imgs/fire.png",
+                        image: "/src/imgs/fire.png",
+                        vibrate: [200, 100, 200],
+                    };
+                    new Notification(title, options);
+                }
+            });
+        }
+    }, []);
+    
     return (
         <div className="container">
             <h1>Usuarios</h1>
