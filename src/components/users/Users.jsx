@@ -13,34 +13,35 @@ const Users = () => {
             navigator.serviceWorker.register('/sw.js')
             .then(registro => {
                 console.log("✅ Service Worker registrado");
-    
-                // Verificar permisos de notificación
+        
                 if (Notification.permission === 'default') {
-                    Notification.requestPermission().then(permission => {
+                    Notification.requestPermission().then(async permission => {
                         if (permission === 'granted') {
-                            // Suscribirse a notificaciones push
-                            registro.pushManager.subscribe({
+                            const subscription = await registro.pushManager.subscribe({
                                 userVisibleOnly: true,
                                 applicationServerKey: keys.public_key
-                            })
-                            .then(subscription => {
-                                console.log(subscription);
+                            });
+        
+                            // Obtener el correo del usuario desde el almacenamiento local
+                            const userEmail = localStorage.getItem('userEmail');
+        
+                            if (userEmail) {
                                 // Guardar suscripción en el servidor
-                                return fetch('https://backendpwa001.onrender.com/save-subscription', {
+                                await fetch('https://backendpwa001.onrender.com/save-subscription', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify(subscription)
+                                    body: JSON.stringify({ email: userEmail, subscription })
                                 });
-                            })
-                            .then(response => response.json())
-                            .then(data => console.log('📩 Suscripción guardada:', data))
-                            .catch(error => console.error('❌ Error al guardar la suscripción:', error));
+        
+                                console.log('📩 Suscripción guardada con usuario:', userEmail);
+                            }
                         }
                     });
                 }
             })
             .catch(error => console.error("❌ Error al registrar el Service Worker:", error));
         }
+        
     }, []);
     
 
@@ -70,8 +71,9 @@ const Users = () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    title: `Notificación para ${selectedUser.name}`,
-                    body: `Gracias ${selectedUser.name} por usar mi PWA`
+                    email: selectedUser.email, // Enviar email en la solicitud
+                    title: `Hola, ${selectedUser.name}!`,
+                    body: `Gracias por usar nuestra aplicación!`
                 })
             });
     
@@ -83,6 +85,7 @@ const Users = () => {
     
         setModalOpen(false);
     };
+    
     
 
     return (
