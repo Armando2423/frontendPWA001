@@ -22,50 +22,21 @@ const SignUp = () => {
         };
     }, []);
 
-  /*   const openDatabase = async () => {
-        const databases = await indexedDB.databases();
-        const existingDB = databases.find(db => db.name === "database");
-        const version = existingDB ? existingDB.version + 1 : 1; // Usa la versión existente o inicia en 1
-    
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open("database", version);
-    
-            request.onupgradeneeded = (event) => {
-                const db = event.target.result;
-                if (!db.objectStoreNames.contains("offlineDB")) {
-                    db.createObjectStore("offlineDB", { autoIncrement: true });
-                }
-            };
-    
-            request.onsuccess = (event) => resolve(event.target.result);
-            request.onerror = (event) => {
-                if (event.target.error.name === "VersionError") {
-                    console.error("Error de versión. Eliminando base de datos...");
-                    indexedDB.deleteDatabase("database"); // Eliminar BD y volver a abrir
-                    setTimeout(() => openDatabase().then(resolve).catch(reject), 1000);
-                } else {
-                    reject(event.target.error);
-                }
-            };
-        });
-    }; */
-    
     const openDatabase = async () => {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open("database");
-    
+
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
                 if (!db.objectStoreNames.contains("offlineDB")) {
                     db.createObjectStore("offlineDB", { autoIncrement: true });
                 }
             };
-    
+
             request.onsuccess = (event) => resolve(event.target.result);
             request.onerror = (event) => reject(event.target.error);
         });
     };
-    
 
     const saveOfflineData = async (data) => {
         try {
@@ -76,7 +47,7 @@ const SignUp = () => {
 
             console.log("Datos guardados en IndexedDB:", data);
             setError("No hay conexión. Datos guardados y serán enviados cuando haya internet.");
-            setFormData({ name: '', app: '', apm: '', email: '', pwd: '' }); // Limpiar formulario
+            setFormData({ name: '', app: '', apm: '', email: '', pwd: '' });
         } catch (error) {
             console.error("Error al guardar en IndexedDB:", error);
         }
@@ -88,18 +59,20 @@ const SignUp = () => {
             console.error("No existe el objectStore offlineDB");
             return;
         }
-    
+
         const transaction = db.transaction("offlineDB", "readonly");
         const store = transaction.objectStore("offlineDB");
         const getAllRequest = store.getAll();
-    
+
         getAllRequest.onsuccess = async () => {
             const offlineData = getAllRequest.result;
+            console.log("Datos guardados en IndexedDB:", offlineData);
             if (offlineData.length === 0) return;
-    
+
             let allSynced = true;
             for (const data of offlineData) {
                 try {
+                    console.log("Enviando datos sincronizados:", data);
                     const response = await axios.post('https://backendpwa001.onrender.com/register', data);
                     console.log("Datos sincronizados:", response.data);
                 } catch (error) {
@@ -107,28 +80,26 @@ const SignUp = () => {
                     allSynced = false;
                 }
             }
-    
+
             if (allSynced) {
                 const deleteTransaction = db.transaction("offlineDB", "readwrite");
                 const deleteStore = deleteTransaction.objectStore("offlineDB");
                 deleteStore.clear();
-    
                 console.log("Datos eliminados de IndexedDB después de sincronizar.");
                 alert("La conexión ha vuelto. Los datos han sido registrados correctamente.");
             }
         };
     };
-    
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-    
+
         if (!formData.name || !formData.app || !formData.apm || !formData.email || !formData.pwd) {
             setError('Todos los campos son obligatorios');
             return;
         }
-    
+
         if (navigator.onLine) {
             try {
                 const response = await axios.post('https://backendpwa001.onrender.com/register', formData);
@@ -144,7 +115,6 @@ const SignUp = () => {
             await saveOfflineData(formData);
         }
     };
-    
 
     return (
         <div className="wrapper">
