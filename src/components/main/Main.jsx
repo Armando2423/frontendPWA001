@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import './Main.css';
+import "./Main.css";
 import keys from "../../../keys.json"; // Asegúrate de que contiene la clave pública
-// images 
+
+// Images 
 import Snake4 from "../../imgs/snake4.jpg";
 import Snake2 from "../../imgs/snake2.jpg";
 import Snake1 from "../../imgs/snake1.jpg";
@@ -12,22 +13,30 @@ const Main = () => {
 
     useEffect(() => {
         const askNotificationPermission = async () => {
-            if ('Notification' in window && 'serviceWorker' in navigator) {
-                if (Notification.permission === "default") {
-                    const permission = await Notification.requestPermission();
-                    if (permission === "granted") {
-                        subscribeToPushNotifications();
-                    }
-                } else if (Notification.permission === "granted") {
+            if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+                console.log("❌ Notificaciones o Service Workers no soportados en este navegador");
+                return;
+            }
+
+            if (Notification.permission === "default") {
+                const permission = await Notification.requestPermission();
+                if (permission === "granted") {
                     subscribeToPushNotifications();
                 }
+            } else if (Notification.permission === "granted") {
+                subscribeToPushNotifications();
             }
         };
 
         const subscribeToPushNotifications = async () => {
             try {
-                const registration = await navigator.serviceWorker.register('../../../sw.js', { type: 'module' });
+                const registration = await navigator.serviceWorker.register('/sw.js');
                 console.log("✅ Service Worker registrado en Main");
+
+                if (!('pushManager' in registration)) {
+                    console.error("❌ pushManager no soportado en este navegador");
+                    return;
+                }
 
                 const subscription = await registration.pushManager.subscribe({
                     userVisibleOnly: true,
