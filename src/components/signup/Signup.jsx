@@ -22,7 +22,7 @@ const SignUp = () => {
         };
     }, []);
 
-    const openDatabase = async () => {
+  /*   const openDatabase = async () => {
         const databases = await indexedDB.databases();
         const existingDB = databases.find(db => db.name === "database");
         const version = existingDB ? existingDB.version + 1 : 1; // Usa la versión existente o inicia en 1
@@ -47,6 +47,22 @@ const SignUp = () => {
                     reject(event.target.error);
                 }
             };
+        });
+    }; */
+    
+    const openDatabase = async () => {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open("database");
+    
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains("offlineDB")) {
+                    db.createObjectStore("offlineDB", { autoIncrement: true });
+                }
+            };
+    
+            request.onsuccess = (event) => resolve(event.target.result);
+            request.onerror = (event) => reject(event.target.error);
         });
     };
     
