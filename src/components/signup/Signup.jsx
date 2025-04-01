@@ -22,21 +22,34 @@ const SignUp = () => {
         };
     }, []);
 
-    const openDatabase = () => {
+    const openDatabase = async () => {
+        const databases = await indexedDB.databases();
+        const existingDB = databases.find(db => db.name === "database");
+        const version = existingDB ? existingDB.version + 1 : 1; // Usa la versión existente o inicia en 1
+    
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open("database", 2);
-
+            const request = indexedDB.open("database", version);
+    
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
                 if (!db.objectStoreNames.contains("offlineDB")) {
                     db.createObjectStore("offlineDB", { autoIncrement: true });
                 }
             };
-
+    
             request.onsuccess = (event) => resolve(event.target.result);
-            request.onerror = (event) => reject(event.target.error);
+            request.onerror = (event) => {
+                if (event.target.error.name === "VersionError") {
+                    console.error("Error de versión. Eliminando base de datos...");
+                    indexedDB.deleteDatabase("database"); // Eliminar BD y volver a abrir
+                    setTimeout(() => openDatabase().then(resolve).catch(reject), 1000);
+                } else {
+                    reject(event.target.error);
+                }
+            };
         });
     };
+    
 
     const saveOfflineData = async (data) => {
         try {
@@ -54,73 +67,68 @@ const SignUp = () => {
     };
 
     const sendOfflineData = async () => {
-        const request = indexedDB.open("database", 2);
-
-        request.onsuccess = async (event) => {
-            const db = event.target.result;
-
-            if (!db.objectStoreNames.contains("offlineDB")) {
-                console.error("Error: No existe el objectStore offlineDB");
-                return;
+        const db = await openDatabase();
+        if (!db.objectStoreNames.contains("offlineDB")) {
+            console.error("No existe el objectStore offlineDB");
+            return;
+        }
+    
+        const transaction = db.transaction("offlineDB", "readonly");
+        const store = transaction.objectStore("offlineDB");
+        const getAllRequest = store.getAll();
+    
+        getAllRequest.onsuccess = async () => {
+            const offlineData = getAllRequest.result;
+            if (offlineData.length === 0) return;
+    
+            let allSynced = true;
+            for (const data of offlineData) {
+                try {
+                    const response = await axios.post('https://backendpwa001.onrender.com/register', data);
+                    console.log("Datos sincronizados:", response.data);
+                } catch (error) {
+                    console.error("Error al sincronizar:", error);
+                    allSynced = false;
+                }
             }
-
-            const transaction = db.transaction("offlineDB", "readonly");
-            const store = transaction.objectStore("offlineDB");
-            const getAllRequest = store.getAll();
-
-            getAllRequest.onsuccess = async () => {
-                const offlineData = getAllRequest.result;
-                if (offlineData.length === 0) return;
-
-                let allSynced = true;
-                for (const data of offlineData) {
-                    try {
-                        const response = await axios.post('https://backendpwa001.onrender.com/register', data);
-                        console.log("Datos sincronizados:", response.data);
-                    } catch (error) {
-                        console.error("Error al sincronizar:", error);
-                        allSynced = false;
-                    }
-                }
-
-                if (allSynced) {
-                    const deleteTransaction = db.transaction("offlineDB", "readwrite");
-                    const deleteStore = deleteTransaction.objectStore("offlineDB");
-                    deleteStore.clear();
-
-                    console.log("Datos eliminados de IndexedDB después de sincronizar.");
-                    alert("Los datos guardados sin conexión se han sincronizado exitosamente.");
-                }
-            };
+    
+            if (allSynced) {
+                const deleteTransaction = db.transaction("offlineDB", "readwrite");
+                const deleteStore = deleteTransaction.objectStore("offlineDB");
+                deleteStore.clear();
+    
+                console.log("Datos eliminados de IndexedDB después de sincronizar.");
+                alert("La conexión ha vuelto. Los datos han sido registrados correctamente.");
+            }
         };
     };
+    
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-
+    
         if (!formData.name || !formData.app || !formData.apm || !formData.email || !formData.pwd) {
             setError('Todos los campos son obligatorios');
             return;
         }
-
+    
         if (navigator.onLine) {
             try {
                 const response = await axios.post('https://backendpwa001.onrender.com/register', formData);
-
                 console.log('Respuesta del servidor:', response.data);
                 alert('Registro exitoso');
-
-                setFormData({ name: '', app: '', apm: '', email: '', pwd: '' }); // Limpiar formulario
+                setFormData({ name: '', app: '', apm: '', email: '', pwd: '' });
                 navigate('/');
             } catch (error) {
                 console.log('Error en el registro:', error.response ? error.response.data : error);
                 setError(error.response?.data?.message || 'Error en el registro. Intenta nuevamente.');
             }
         } else {
-            saveOfflineData(formData);
+            await saveOfflineData(formData);
         }
     };
+    
 
     return (
         <div className="wrapper">
