@@ -23,7 +23,7 @@ const Users = () => {
         
                             const userEmail = localStorage.getItem("userEmail"); 
                             if (userEmail) {
-                                await fetch('https://backendpwa001.onrender.com/save-subscription', {
+                                await fetch('https://backendpwa001.onrender.com/save_subscription', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ email: userEmail, subscription })
@@ -56,7 +56,7 @@ const Users = () => {
 
     const handleSendNotification = async () => {
         try {
-            const response = await fetch('https://backendpwa001.onrender.com/save_subscription', {
+            const response = await fetch('https://backendpwa001.onrender.com/send_subscription', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
