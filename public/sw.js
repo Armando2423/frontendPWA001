@@ -9,7 +9,7 @@ self.addEventListener("install", (event) => {
         caches.open(CACHE_NAME).then((cache) => {
             console.log("Cargando archivos en caché...");
             return cache.addAll([
-/*                 "/",
+              "/",
                 "/index.html",
                 "/manifest.json",
                 "/src/index.css",
@@ -27,13 +27,13 @@ self.addEventListener("install", (event) => {
                 "/src/components/splashScreen/SplashScreen.jsx",
                 "/src/components/splashScreen/SplashScreen.css",
                 "/src/components/users/Users.jsx",
-                "/src/components/users/Users.css" */
+                "/src/components/users/Users.css" 
 
-                "/",
+               /*  "/",
                 "/index.html",
                 "/manifest.json",
                 "/fire.png",
-                "/assets/react.svg",
+                "/assets/react.svg", */
             ]);
         }).catch(err => console.error("Error al cargar archivos en caché:", err))
     );
