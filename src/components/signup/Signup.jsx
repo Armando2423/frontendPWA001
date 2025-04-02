@@ -12,7 +12,8 @@ const SignUp = () => {
         app: '',
         apm: '',
         email: '',
-        pwd: ''
+        pwd: '',
+        subscription: null
     });
 
     useEffect(() => {
@@ -95,21 +96,54 @@ const SignUp = () => {
       
     };
 
+    const getSubscription = async () => {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            console.error("Las notificaciones no están soportadas en este navegador.");
+            return null;
+        }
+    
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: process.env.REACT_APP_PUBLIC_VAPID_KEY
+        });
+    
+        return subscription;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-
+    
         if (!formData.name || !formData.app || !formData.apm || !formData.email || !formData.pwd) {
             setError('Todos los campos son obligatorios');
             return;
         }
-
+    
+        // Obtener suscripción de notificaciones
+        const subscription = await getSubscription();
+        if (subscription) {
+            // Agregar la suscripción al formData
+            setFormData((prevFormData) => ({
+                ...prevFormData,
+                subscription: {
+                    endpoint: subscription.endpoint,
+                    expirationTime: subscription.expirationTime,
+                    keys: {
+                        p256dh: subscription.getKey('p256dh'),
+                        auth: subscription.getKey('auth')
+                    }
+                }
+            }));
+        }
+    
+        // Luego, realiza la solicitud si hay conexión
         if (navigator.onLine) {
             try {
                 const response = await axios.post('https://backendpwa001.onrender.com/register', formData);
                 console.log('Respuesta del servidor:', response.data);
                 alert('Registro exitoso');
-                setFormData({ name: '', app: '', apm: '', email: '', pwd: '' });
+                setFormData({ name: '', app: '', apm: '', email: '', pwd: '', subscription: null });
                 navigate('/');
             } catch (error) {
                 console.log('Error en el registro:', error.response ? error.response.data : error);
@@ -119,6 +153,7 @@ const SignUp = () => {
             await saveOfflineData(formData);
         }
     };
+    
 
     return (
         <div className="wrapper">
